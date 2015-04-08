@@ -12,7 +12,11 @@ var merge = require('merge-stream');
 var stylish = require('jshint-stylish');
 var karma = require('karma').server;
 var argv = require('yargs').argv;
+var browserSync = require('browser-sync');
+var runSequence = require('run-sequence');
 
+
+// And some settings, probably do this in a different way soon.
 var config = {
   "dist": "dist",
   "src": "src"
@@ -55,7 +59,7 @@ gulp.task('lint', function () {
 });
 
 gulp.task('test', function (done) {
-  karma.start({
+  return karma.start({
     configFile: __dirname + '/karma.conf.js',
     singleRun: true
   }, done);
@@ -65,7 +69,7 @@ gulp.task('test', function (done) {
 /* Sass tasks */
 /******************************************************************************/
 gulp.task('sass', function() {
-  return gulp.src('src/sass/main.scss')
+  return gulp.src(config.src + "/sass/*.scss")
     .pipe($.sass()
       .on('error', $.util.log))
     .pipe($.autoprefixer({
@@ -91,7 +95,8 @@ gulp.task('clean', function() {
 gulp.task('webpack', function() {
   return gulp.src('src/scripts/TempoApp.js')
     .pipe($.webpack(require('./webpack.config.js')))
-    .pipe(gulp.dest(config.dist));
+    .pipe(gulp.dest(config.dist + "/assets/"))
+    .pipe(browserSync.reload({stream: true}));
 });
 
 gulp.task('copy', function() {
@@ -100,12 +105,12 @@ gulp.task('copy', function() {
       "src/images/*",
       "src/css/*"
     ])
-    .pipe($.copy("dist", {
+    .pipe($.copy(config.dist, {
       prefix: 1
     }));
 });
 
-gulp.task('build', ['lint', 'test', 'sass','copy', 'webpack']);
+gulp.task('build', ['lint', 'test', 'sass', 'copy', 'webpack']);
 gulp.task('rebuild', ['lint', 'sass', 'copy', 'webpack']);
 
 
@@ -128,3 +133,21 @@ gulp.task('browser', function () {
     .on('start', ['build'])
     .on('change', ['build']);
 });
+
+
+gulp.task('watch', function () {
+  gulp.watch(config.src + "/sass/**/*.scss", ['sass', 'copy']);
+  gulp.watch(config.src + "image/**/*", ['copy']);
+  gulp.watch(config.src + "scripts/**/*", ['lint', 'webpack']);
+});
+
+
+gulp.task('browserSync', function () {
+  browserSync({
+    server: {
+      baseDir: config.dist
+    }
+  });
+});
+
+gulp.task('server', ['build', 'browserSync']);
