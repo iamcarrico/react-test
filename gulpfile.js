@@ -14,7 +14,8 @@ var karma = require('karma').server;
 var argv = require('yargs').argv;
 
 var config = {
-  "dist": "dist"
+  "dist": "dist",
+  "src": "src"
 };
 
 /**
@@ -72,7 +73,7 @@ gulp.task('sass', function() {
     }))
     .pipe(argv.production ? $.minifyCSS() : $.util.noop())
     .pipe(argv.production ? $.rev() : $.util.noop())
-    .pipe(gulp.dest(config.dist + "/css"));
+    .pipe(gulp.dest(config.src + "/css"));
 });
 
 /******************************************************************************/
@@ -93,8 +94,19 @@ gulp.task('webpack', function() {
     .pipe(gulp.dest(config.dist));
 });
 
-gulp.task('build', ['lint', 'test', 'sass', 'webpack']);
-gulp.task('rebuild', ['lint', 'sass', 'webpack']);
+gulp.task('copy', function() {
+  return gulp.src([
+      "src/*",
+      "src/images/*",
+      "src/css/*"
+    ])
+    .pipe($.copy("dist", {
+      prefix: 1
+    }));
+});
+
+gulp.task('build', ['lint', 'test', 'sass','copy', 'webpack']);
+gulp.task('rebuild', ['lint', 'sass', 'copy', 'webpack']);
 
 
 /******************************************************************************/
