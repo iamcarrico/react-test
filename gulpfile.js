@@ -11,6 +11,11 @@ var $ = require('gulp-load-plugins')();
 var merge = require('merge-stream');
 var stylish = require('jshint-stylish');
 var karma = require('karma').server;
+var argv = require('yargs').argv;
+
+var config = {
+  "dist": "dist"
+};
 
 /**
  * Default task
@@ -65,16 +70,16 @@ gulp.task('sass', function() {
     .pipe($.autoprefixer({
       browsers: ['last 2 versions']
     }))
-    .pipe(gulp.env.production ? $.minifyCSS() : $.util.noop())
-    .pipe(gulp.env.production ? $.rev() : $.util.noop())
-    .pipe(gulp.dest('dist/assets'));
+    .pipe(argv.production ? $.minifyCSS() : $.util.noop())
+    .pipe(argv.production ? $.rev() : $.util.noop())
+    .pipe(gulp.dest(config.dist + "/css"));
 });
 
 /******************************************************************************/
 /* Cleaning tasks */
 /******************************************************************************/
 gulp.task('clean', function() {
-  return gulp.src('dist', {
+  return gulp.src(config.dist, {
     read: false
   }).pipe($.clean());
 });
@@ -83,13 +88,13 @@ gulp.task('clean', function() {
 /* Compiling tasks */
 /******************************************************************************/
 gulp.task('webpack', function() {
-  return gulp.src('browser.js')
+  return gulp.src('src/scripts/TempoApp.js')
     .pipe($.webpack(require('./webpack.config.js')))
-    .pipe(gulp.dest('.'));
+    .pipe(gulp.dest(config.dist));
 });
 
-gulp.task('build', ['lint', 'test', 'webpack']);
-gulp.task('rebuild', ['lint', 'webpack']);
+gulp.task('build', ['lint', 'test', 'sass', 'webpack']);
+gulp.task('rebuild', ['lint', 'sass', 'webpack']);
 
 
 /******************************************************************************/

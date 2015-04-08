@@ -30,7 +30,7 @@ module.exports = {
   resolve: {
     extensions: ['', '.js'],
     alias: {
-      'styles': '../../../src/styles',
+      'styles': '../../../dist/css',
       'components': '../../../src/scripts/components/'
     }
   },
